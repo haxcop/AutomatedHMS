@@ -1,8 +1,9 @@
 ######### Created by Carlos L. AKA: HAXCOP #############
-######################### V2 ###########################
+######################### V3 ###########################
 #and thanks to the creators of these tools used bellow#
 # tombowditch = https://github.com/tombowditch/telly
 # jjssoftware = https://github.com/jjssoftware/m3u-epg-editor
+# Removed actions to add path enviroments and refresh sesions for a simpler wide use
 # ENJOY #
 Function TEST-LocalAdmin { 
     Return ([security.principal.windowsprincipal] [security.principal.windowsidentity]::GetCurrent()).isinrole([Security.Principal.WindowsBuiltInRole] "Administrator") 
@@ -107,132 +108,6 @@ function Install_Python27 {
         
     }
 } 
-<#Function ADD-PATH { 
-    [Cmdletbinding(SupportsShouldProcess = $TRUE)] 
-    param 
-    ( 
-        [parameter(Mandatory = $True,  
-            ValueFromPipeline = $True, 
-            Position = 0)] 
-        [String[]]$AddedFolder 
-    ) 
- 
-    If ( ! (TEST-LocalAdmin) ) { Write-Host 'Need to RUN AS ADMINISTRATOR first'; Return 1 } 
-     
-    # Get the Current Search Path from the Environment keys in the Registry 
- 
-    $OldPath = (Get-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\Environment' -Name PATH).Path 
- 
-    # See if a new Folder has been supplied 
- 
-    IF (!$AddedFolder) 
-    { Return ‘No Folder Supplied.  $ENV:PATH Unchanged’} 
- 
-    # See if the new Folder exists on the File system 
- 
-    IF (!(TEST-PATH $AddedFolder)) 
-    { Return ‘Folder Does not Exist, Cannot be added to $ENV:PATH’ } 
- 
-    # See if the new Folder is already IN the Path 
- 
-    $PathasArray = ($Env:PATH).split(';') 
-    IF ($PathasArray -contains $AddedFolder -or $PathAsArray -contains $AddedFolder + '\') 
-    { Return "Folder already within $ENV:PATH" } 
- 
-    If (!($AddedFolder[-1] -match '\\')) { $Newpath = $Newpath + '\'} 
- 
-    # Set the New Path 
- 
-    $NewPath = $OldPath + ";" + $AddedFolder 
-    if ( $PSCmdlet.ShouldProcess($AddedFolder) ) { 
-        Set-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\Environment' -Name PATH –Value $newPath 
- 
-        # Show our results back to the world 
- 
-        Return $NewPath  
-    } 
-}
-Function ADD-PATHEXT { 
-    [Cmdletbinding(SupportsShouldProcess = $TRUE)] 
-    param 
-    ( 
-        [parameter(Mandatory = $True,  
-            ValueFromPipeline = $True, 
-            Position = 0)] 
-        [String[]]$ext 
-    ) 
- 
-    If ( ! (TEST-LocalAdmin) ) { Write-Host 'Need to RUN AS ADMINISTRATOR first'; Return 1 } 
-     
-    # Get the Current Search PathExt from the Environment keys in the Registry 
- 
-    $OldExt = (Get-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\Environment' -Name PATHEXT).PathExt 
- 
-    # See if a new Extension has been supplied 
- 
-    IF (!$ext) 
-    { Return ‘No ext Supplied.  $ENV:PATHEXT Unchanged’} 
- 
-    # See if the new Extension is already IN the Path 
- 
-    $PathasArray = ($Env:PATHEXT).split(';') 
-    IF ($PathasArray -contains $ext ) 
-    { Return 'ext already within $ENV:PATHEXT' } 
- 
-    If (!($ext[-1] -match '.')) { $Newext = $Newext + ';'} 
- 
-    # Set the New Ext 
- 
-    $NewExt = $OldExt + ';' + $ext  
-    if ( $PSCmdlet.ShouldProcess($ext) ) { 
-        Set-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\Environment' -Name PATHEXT –Value $Newext 
- 
-        # Show our results back to the world 
- 
-        Return $Newext  
-    } 
-}
-FUNCTION GET-PATH { 
-    #Return (Get-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\Environment' -Name PATH).Path 
-    # uncomment the above code to properly apply the below code into it ("just a better way to show up the PATHS") if you know what you are doing
-    Push-Location env:
-    (Get-ChildItem path).value.split(";")
-    Pop-Location
-} 
-FUNCTION GET-PATHEXT { 
-    #Return (Get-ItemProperty -Path 'Registry::HKEY_LOCAL_MACHINE\System\CurrentControlSet\Control\Session Manager\Environment' -Name PATH).Path 
-    # uncomment the above code to properly apply the below code into it ("just a better way to show up the PATHS") if you know what you are doing
-    Push-Location env:
-    (Get-ChildItem PATHEXT).value.split(";")
-    Pop-Location
-} 
-
-function refresh_enviroment {
-    foreach ($level in "Machine", "User") {
-        [Environment]::GetEnvironmentVariables($level).GetEnumerator() | ForEach-Object {
-            # For Path variables, append the new values, if they're not already in there
-            if ($_.Name -match 'Path$') { 
-                $_.Value = ($((Get-Content "Env:$($_.Name)") + ";$($_.Value)") -split ';' | Select-Object -unique) -join ';'
-            }
-            $_
-        } | Set-Content -Path { "Env:$($_.Name)" }
-    }
-    
-} 
-#>
-function refresh_ext_enviroment {
-
-    foreach ($level in "Machine", "User") {
-        [Environment]::GetEnvironmentVariables($level).GetEnumerator() | ForEach-Object {
-            # For Path variables, append the new values, if they're not already in there
-            if ($_.Name -match 'Pathext$') { 
-                $_.Value = ($((Get-Content "Env:$($_.Name)") + ";$($_.Value)") -split ';' | Select-Object -unique) -join ';'
-            }
-            $_
-        } | Set-Content -Path { "Env:$($_.Name)" }
-    }
-    
-} 
 function install_python_pkg {
     C:\Python27\python.exe -m pip install --upgrade pip;
     if (!(Test-Path "C:\Python27\Lib\site-packages\requests")) {
@@ -248,7 +123,6 @@ function install_python_pkg {
     Write-Host "Moving on with the script."
     
 } 
-
 function m3u_automated {
     <# Add your channels or channel groups manually as showed below for direct automation and uncomment it
     $ChannelGroups = "'sports','ireland'"
@@ -396,7 +270,6 @@ function m3u_automated {
         Write-Host '-_-'
     }    
 }
- 
 function m3u_manual {
     
     #<#
@@ -597,22 +470,10 @@ Write-Output "Creating Directories"
 directories;
 download_telly;
 download_m3u_epg_editor;
-#Write-Output "Adding Telly To the $ENV:Path"
-#ADD-PATH $L;
-#Write-Output "Adding M3U-Editor To the $ENV:Path"
-#ADD-PATH $m3u;
 download_python27;
 Install_Python27;
-#Write-Output "Checking if PY & PYW are in the $ENV:PATHEXT"
-#ADD-PATHEXT .PY;
-#ADD-PATHEXT .PYW;
-#refresh_enviroment;
-#refresh_ext_enviroment;
-#GET-PATH >> $L\logs.txt;
-#GET-PATHEXT >> $L\logs.txt;
 Write-Output " Checking Python dependencies...";
 install_python_pkg;
-#refresh_enviroment;
 # At this point you can choose between m3u_manual or m3u_automated IF you have modified the required paths and arguments into the function.
 #m3u_automated;
 m3u_manual;
