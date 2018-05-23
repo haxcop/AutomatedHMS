@@ -123,15 +123,16 @@ function install_python_pkg {
     Write-Host "Moving on with the script."
     
 } 
-function m3u_automated {
+#Adding recursive deletion of groups in the file
+function m3u_semi_automated {
     <# Add your channels or channel groups manually as showed below for direct automation and uncomment it
     $ChannelGroups = "'sports','ireland'"
     Comment with # the line bellow #$GC = Read-Host "" & #$ChannelGroups = "$CG" if you do not want user prompt
     and uncomment the above  $ChannelGroups = "'Your','Channels'"
     #>
-    $Vaders2 = #"YOUR M3U URL OR FILE HERE, IF IS A FILE FOLLOW THIS PATTERN "file:///YOUR/FILE/PATH.M3U" "
-    $VadersEPG_VOD = #"YOUR EPG URL HERE"
-    $CG = #'sports' 
+    $Vaders2 = "http://api.vaders.tv/vget?username=______&password=_______&format=ts"
+    $VadersEPG_VOD = "http://vaders.tv/p2.xml.gz"
+    $CG = "sports"
     $G = "$DG\Sorted"
     Write-Output "Starting to downloand and sort alphetically the channels and groups"
     Write-Output "" 
@@ -176,7 +177,7 @@ function m3u_automated {
     $choices = New-Object Collections.ObjectModel.Collection[Management.Automation.Host.ChoiceDescription]
     $choices.Add((New-Object Management.Automation.Host.ChoiceDescription -ArgumentList '&Yes'))
     $choices.Add((New-Object Management.Automation.Host.ChoiceDescription -ArgumentList '&No'))
-    $decision = $Host.UI.PromptForChoice($message, $question, $choices, 1)
+    $decision = $Host.UI.PromptForChoice($message, $question, $choices, 0)
     if ($decision -eq 0) {
         Write-Host 'confirmed'
         cd $m3u
@@ -196,7 +197,7 @@ function m3u_automated {
     $choices = New-Object Collections.ObjectModel.Collection[Management.Automation.Host.ChoiceDescription]
     $choices.Add((New-Object Management.Automation.Host.ChoiceDescription -ArgumentList '&Yes'))
     $choices.Add((New-Object Management.Automation.Host.ChoiceDescription -ArgumentList '&No'))
-    $decision = $Host.UI.PromptForChoice($message, $question, $choices, 1)
+    $decision = $Host.UI.PromptForChoice($message, $question, $choices, 0)
     if ($decision -eq 0) {
         Write-Host 'Cool!'
         
@@ -326,6 +327,7 @@ function m3u_manual {
     You can see the Vader's groups above for reference
     
     Set your Channels or Groups"
+    $GC1 = "'$GC'"
 
     $G = "$DG\Sorted"
     
@@ -347,20 +349,22 @@ function m3u_manual {
     $filename_sd = "$SD\sd.channels.only.txt" # No HD Channels List
     $IPTVSD = "$SD\SDTv.unique.txt" # SD Channels List without Duplicates
     $IPTVHD = "$HD\HDTv.unique.txt" # HD Channels List without Duplicates
-    (get-content $SC) -replace "$CG", "" | out-file "$SCNG"
-    (get-content $SCNG) -notmatch "hd" | out-file $filename_sd
-    get-content $filename_sd | Sort-Object | get-unique > $IPTVSD
+    $file = $SC 
+
+    (get-content $SC) -replace $CG, "" | out-file "$SCNG";
+    (get-content $SCNG) -notmatch "hd" | out-file $filename_sd;
+    get-content $filename_sd | Sort-Object | get-unique > $IPTVSD;
     $replaceCharacter = ''
-    $contentSD = Get-Content $IPTVSD
-    $contentSD[-1] = $contentSD[-1] -replace '^(.*).$', "`$1$replaceCharacter"
-    $contentSD | Set-Content $IPTVSD
-    (get-content $scng) -match "hd" | out-file $filename_hd
-    get-content $filename_hd | Sort-Object | get-unique > $IPTVHD
-    $contentHD = Get-Content $IPTVHD
-    $contentHD[-1] = $contentHD[-1] -replace '^(.*).$', "`$1$replaceCharacter"
-    $contentHD | Set-Content $IPTVHD
-    $gcSD = Get-Content $IPTVSD
-    $gcHD = Get-Content $IPTVHD
+    $contentSD = Get-Content $IPTVSD;
+    $contentSD[-1] = $contentSD[-1] -replace '^(.*).$', "`$1$replaceCharacter";
+    $contentSD | Set-Content $IPTVSD;
+    (get-content $scng) -match "hd" | out-file $filename_hd;
+    get-content $filename_hd | Sort-Object | get-unique > $IPTVHD;
+    $contentHD = Get-Content $IPTVHD;
+    $contentHD[-1] = $contentHD[-1] -replace '^(.*).$', "`$1$replaceCharacter";
+    $contentHD | Set-Content $IPTVHD;
+    $gcSD = Get-Content $IPTVSD;
+    $gcHD = Get-Content $IPTVHD;
     $I = "$HD\HDTv" 
     $K = "$SD\SDTv"
     $message = 'Step 1 complete, Cool! *_0'
@@ -464,17 +468,17 @@ function m3u_manual {
 }
 
 ## VARS
-TEST-LocalAdmin;
-if (!(TEST-LocalAdmin)) {Write-Host " You Need to RUN AS ADMINISTRATOR first"; Return}
-Write-Output "Creating Directories"
-directories;
-download_telly;
-download_m3u_epg_editor;
-download_python27;
-Install_Python27;
-Write-Output " Checking Python dependencies...";
-install_python_pkg;
+#TEST-LocalAdmin;
+#if (!(TEST-LocalAdmin)) {Write-Host " You Need to RUN AS ADMINISTRATOR first"; Return}
+#Write-Output "Creating Directories"
+#directories;
+#download_telly;
+#download_m3u_epg_editor;
+#download_python27;
+#Install_Python27;
+#Write-Output " Checking Python dependencies...";
+#install_python_pkg;
 # At this point you can choose between m3u_manual or m3u_automated IF you have modified the required paths and arguments into the function.
-#m3u_automated;
+#m3u_semi_automated;
 m3u_manual;
 ## End
