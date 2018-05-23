@@ -327,7 +327,7 @@ function m3u_manual {
     You can see the Vader's groups above for reference
     
     Set your Channels or Groups"
-    $GC1 = "'$GC'"
+    
 
     $G = "$DG\Sorted"
     
@@ -468,16 +468,19 @@ function m3u_manual {
 }
 
 ## VARS
-#TEST-LocalAdmin;
-#if (!(TEST-LocalAdmin)) {Write-Host " You Need to RUN AS ADMINISTRATOR first"; Return}
-#Write-Output "Creating Directories"
-#directories;
-#download_telly;
-#download_m3u_epg_editor;
-#download_python27;
-#Install_Python27;
-#Write-Output " Checking Python dependencies...";
-#install_python_pkg;
+TEST-LocalAdmin;
+if (!(TEST-LocalAdmin)) {Write-Host " You Need to RUN AS ADMINISTRATOR first"; Return}
+Write-Output "Creating Directories"
+directories;
+download_telly;
+Clear-Host
+download_m3u_epg_editor;
+Clear-Host
+download_python27;
+Install_Python27;
+Write-Output " Checking Python dependencies...";
+install_python_pkg;
+Clear-Host
 # At this point you can choose between m3u_manual or m3u_automated IF you have modified the required paths and arguments into the function.
 #m3u_semi_automated;
 m3u_manual;
